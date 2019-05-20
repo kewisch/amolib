@@ -188,3 +188,59 @@ export class AddonAdminPage {
     return this.disableFiles(toEnable, commit);
   }
 }
+
+
+export class DjangoUserModels {
+  constructor(session, query=null) {
+    this.session = session;
+    this.query = query;
+  }
+
+  async ensureLoaded() {
+    if (!this.token) {
+      await this.load();
+    }
+  }
+
+  async load() {
+    let response = await this.session.request({
+      uri: `${AMO_ADMIN_BASE}/models/users/userprofile/`,
+      qs: { q: this.query } // eslint-disable-line id-length
+    });
+    let document = response.document;
+
+    this.token = document.querySelector("input[name='csrfmiddlewaretoken']").getAttribute("value");
+
+    // TODO also load the rows
+  }
+
+  async ban(users=null) {
+    await this.ensureLoaded();
+
+    let allusers = users ? users : this.query.split(",");
+    let query = users ? users.join(",") : this.query;
+
+    let response = await this.session.request({
+      uri: `${AMO_ADMIN_BASE}/models/users/userprofile/`,
+      method: "POST",
+      qs: { q: query }, // eslint-disable-line id-length
+      qsStringifyOptions: { indices: false },
+      headers: { Referer: `${AMO_ADMIN_BASE}/models/users/userprofile/` },
+      form: {
+        csrfmiddlewaretoken: this.token,
+        action: "ban_action",
+        select_across: 0,
+        index: 0,
+        _selected_action: allusers
+      }
+    });
+
+    let message = response.caseless.get("set-cookie").find(cookie => cookie.startsWith("messages"));
+
+    if (response.statusCode != 302 ||
+        !response.headers.location.includes("/models/users/userprofile/") ||
+        !message.includes("have been banned")) {
+      throw new Error(`Banning users failed (${response.statusCode}): ${message}`);
+    }
+  }
+}
