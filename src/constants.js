@@ -33,3 +33,9 @@ export const ADDON_STATUS_STRINGS = {
 };
 
 export const ADDON_STATUS_VALUES = swap(ADDON_STATUS_STRINGS);
+
+
+export const REDASH_URL = "https://sql.telemetry.mozilla.org/";
+export const REDASH_AMO_DB = 25;
+
+export const BUGZILLA_URL = "https://bugzilla.mozilla.org";

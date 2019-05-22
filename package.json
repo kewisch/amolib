@@ -1,6 +1,6 @@
 {
   "name": "amolib",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Common code for various AMO tools, such as jsamo",
   "author": "Philipp Kewisch <mozilla@kewis.ch>",
   "repository": "kewisch/amolib",
@@ -9,6 +9,7 @@
   "dependencies": {
     "esm": "^3.2.22",
     "jsdom": "^15.0.0",
+    "redash-client": "^2.0.0",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7"
   },
