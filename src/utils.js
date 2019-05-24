@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  * Portions Copyright (C) Philipp Kewisch, 2019 */
 
+import os from "os";
+
 export function swap(obj) {
   return Object.keys(obj).reduce((swapped, key) => {
     swapped[obj[key]] = key;
@@ -21,4 +23,14 @@ export function formToObject(formNode) {
   }
 
   return form;
+}
+
+export function requiresVPN() {
+  let hasVPN = Object.entries(os.networkInterfaces()).find(([iface, [data]]) => {
+    return data.address.startsWith("10.") && iface.startsWith("utun");
+  });
+
+  if (!hasVPN) {
+    throw new Error("This call requires VPN, looks like you are not connected");
+  }
 }
