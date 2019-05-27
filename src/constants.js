@@ -32,10 +32,35 @@ export const ADDON_STATUS_STRINGS = {
   deleted: 11
 };
 
+export const ADDON_FILE_STATUS_STRINGS = {
+  approved: 4,
+  disabled: 5,
+  deleted: 11
+};
+
 export const ADDON_STATUS_VALUES = swap(ADDON_STATUS_STRINGS);
+
+export const ADDON_TYPE_STRINGS = {
+  extension: 1,
+  theme: 2,
+  dictionary: 3,
+  search: 4,
+  lpapp: 5,
+  lpaddon: 6,
+  plugin: 7,
+  lwtheme: 9,
+  statictheme: 10
+};
+
+export const ADDON_CHANNEL_STRINGS = {
+  unlisted: 1,
+  listed: 2
+};
 
 
 export const REDASH_URL = "https://sql.telemetry.mozilla.org/";
 export const REDASH_AMO_DB = 25;
 
 export const BUGZILLA_URL = "https://bugzilla.mozilla.org";
+
+export const RE_ADDON_GUID = /^(\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}|[a-z0-9-._]*@[a-z0-9-._]+)$/i;
