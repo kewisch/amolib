@@ -7,6 +7,7 @@ import RedashClient from "redash-client";
 
 import { REDASH_URL, REDASH_AMO_DB } from "./constants";
 import * as packageJSON from "../package.json";
+import AMOSqlBuilder from "./sql";
 
 export class STMORedashClient extends RedashClient {
   constructor({ apiToken, dataSourceId, debug }) {
@@ -28,6 +29,10 @@ export class STMORedashClient extends RedashClient {
       query: query.trim(),
       data_source_id: this.dataSourceId
     });
+  }
+
+  buildQuery() {
+    return new AMOSqlBuilder(this);
   }
 }
 
