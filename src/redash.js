@@ -37,9 +37,10 @@ export class STMORedashClient extends RedashClient {
 }
 
 export class AMORedashClient extends STMORedashClient {
-  constructor({ apiToken }) {
+  constructor({ apiToken, debug }) {
     super({
       apiToken: apiToken,
+      debug: debug,
       dataSourceId: REDASH_AMO_DB
     });
   }
