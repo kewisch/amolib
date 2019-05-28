@@ -45,9 +45,16 @@ export function requiresVPN() {
  * @return {Object}         The configuration object.
  */
 function readConfig() {
+  let amorc = path.join(os.homedir(), ".amorc");
+  let mode = fs.statSync(amorc).mode;
+  if ((mode & 0o077) != 0) {
+    let strmode = (mode & 0o777).toString(8);
+    throw new Error(`Refusing to open ~/.amorc as it has mode 0${strmode} and may contain secrets. Lock it down to 0600.`);
+  }
+
   let data;
   try {
-    data = fs.readFileSync(path.join(os.homedir(), ".amorc"), "utf-8");
+    data = fs.readFileSync(amorc, "utf-8");
   } catch (e) {
     return {};
   }
