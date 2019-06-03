@@ -84,7 +84,7 @@ export class AMORedashClient extends STMORedashClient {
     return result.query_result.data.rows;
   }
 
-  async queryAddonsInvolvedAccounts(guids, addontypes=["extension"]) {
+  async queryAddonsInvolvedAccounts(guids, addontypes=["extension", "lpapp"]) {
     let types = addontypes.map(type => ADDON_TYPE_STRINGS[type] || type);
 
     let result = await this.sql(`

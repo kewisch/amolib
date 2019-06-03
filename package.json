@@ -1,6 +1,6 @@
 {
   "name": "amolib",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "description": "Common code for various AMO tools, such as jsamo",
   "author": "Philipp Kewisch <mozilla@kewis.ch>",
   "repository": "kewisch/amolib",
