@@ -5,7 +5,7 @@
 
 import RedashClient from "redash-client";
 
-import { REDASH_URL, REDASH_AMO_DB } from "./constants";
+import { REDASH_URL, REDASH_AMO_DB, ADDON_TYPE_STRINGS } from "./constants";
 import * as packageJSON from "../package.json";
 import AMOSqlBuilder from "./sql";
 
@@ -84,7 +84,9 @@ export class AMORedashClient extends STMORedashClient {
     return result.query_result.data.rows;
   }
 
-  async queryAddonsInvolvedAccounts(guids) {
+  async queryAddonsInvolvedAccounts(guids, addontypes=["extension"]) {
+    let types = addontypes.map(type => ADDON_TYPE_STRINGS[type] || type);
+
     let result = await this.sql(`
       SELECT a.guid
       FROM addons_users au
@@ -98,6 +100,7 @@ export class AMORedashClient extends STMORedashClient {
           GROUP BY au.user_id
         )
         AND a.guid NOT LIKE 'guid-reused-by-pk-%'
+        AND a.addontype_id IN (${types.join(",")})
         GROUP BY a.id
     `);
 
