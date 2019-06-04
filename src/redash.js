@@ -5,7 +5,7 @@
 
 import RedashClient from "redash-client";
 
-import { REDASH_URL, REDASH_AMO_DB, ADDON_TYPE_STRINGS } from "./constants";
+import { REDASH_URL, REDASH_AMO_DB, REDASH_POLLING_TIMEOUT_MS, ADDON_TYPE_STRINGS } from "./constants";
 import * as packageJSON from "../package.json";
 import AMOSqlBuilder from "./sql";
 
@@ -21,14 +21,14 @@ export class STMORedashClient extends RedashClient {
     this.dataSourceId = dataSourceId;
   }
 
-  async sql(query) {
+  async sql(query, timeout=REDASH_POLLING_TIMEOUT_MS) {
     if (this.debug) {
       console.warn(query);
     }
     return this.queryAndWaitResult({
       query: query.trim(),
       data_source_id: this.dataSourceId
-    });
+    }, timeout);
   }
 
   buildQuery() {

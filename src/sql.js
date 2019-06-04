@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  * Portions Copyright (C) Philipp Kewisch, 2019 */
 
+import { REDASH_POLLING_TIMEOUT_MS } from "./constants";
+
 const TABLE_SHORT = {
   files: "f",
   addons: "a",
@@ -20,8 +22,8 @@ export default class AMOSqlBuilder {
     this.client = client;
   }
 
-  async run() {
-    return this.client.sql(this.toString());
+  async run(timeout=REDASH_POLLING_TIMEOUT_MS) {
+    return this.client.sql(this.toString(), timeout);
   }
 
   from(tbl) {
