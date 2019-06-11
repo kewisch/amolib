@@ -88,3 +88,34 @@ export function getConfig(...configpath) {
     return gConfigData;
   }
 }
+
+/**
+ * Find out if the ids passed are internal ids, guids, or slugs, or a mixture thereof
+ *
+ * @param {string[]} data   Array of ids
+ * @return {string}         The type, "id", "guid", "slug" or "mixed".
+ */
+export function detectIdType(data) {
+  let RE_GUID = /^(\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}|[a-z0-9-._]*@[a-z0-9-._]+)$/i;
+  let RE_IDS = /^[0-9]+$/;
+  let countGuids = 0;
+  let countIds = 0;
+  for (let line of data) {
+    if (line.match(RE_IDS)) {
+      countIds++;
+    } else if (line.match(RE_GUID)) {
+      countGuids++;
+    }
+  }
+
+  let total = data.length;
+  if (countIds == total) {
+    return "id";
+  } else if (countGuids == total) {
+    return "guid";
+  } else if (countGuids + countIds > 0) {
+    return "mixed";
+  } else {
+    return "slug";
+  }
+}
