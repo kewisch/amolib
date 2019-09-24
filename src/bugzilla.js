@@ -11,8 +11,9 @@ import { BUGZILLA_URL } from "./constants";
  * A simple bugzilla REST API client.
  */
 export class BugzillaClient {
-  constructor(baseurl, apikey) {
+  constructor(baseurl, apikey, readonly=false) {
     this.apikey = apikey || "";
+    this.readonly = readonly;
 
     this.request = request.defaults({
       baseUrl: baseurl + "/rest/",
@@ -49,6 +50,10 @@ export class BugzillaClient {
   }
 
   async update(info) {
+    if (this.readonly) {
+      return {};
+    }
+
     let firstid = info.ids[0];
 
     let data = await this.request({
@@ -66,6 +71,9 @@ export class BugzillaClient {
   }
 
   async create(info) {
+    if (this.readonly) {
+      return null;
+    }
     let data = await this.request({
       method: "POST",
       uri: "/bug",
@@ -91,7 +99,7 @@ export class BugzillaClient {
 }
 
 export class BMOClient extends BugzillaClient {
-  constructor(apikey) {
-    super(BUGZILLA_URL, apikey);
+  constructor(apikey, readonly=false) {
+    super(BUGZILLA_URL, apikey, readonly);
   }
 }
