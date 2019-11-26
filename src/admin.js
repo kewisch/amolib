@@ -103,12 +103,21 @@ export class AddonAdminPage {
           channel: row.querySelector("td:nth-of-type(3)").textContent
         },
         platforms: row.querySelector("td:nth-of-type(5)").textContent,
-        status: parseInt(row.querySelector("td:nth-of-type(6) select").value, 10),
+        status: getFileStatus(row),
         hash: row.querySelector("td:nth-of-type(7) a").getAttribute("title")
       });
     }
 
     return files;
+  }
+
+  getFileStatus(row) {
+    let column = row.querySelector("td:nth-of-type(6)");
+    if (column.innerText === "Deleted") {
+      return ADDON_STATUS.DELETED;
+    } else {
+      return parseInt(column.querySelector("select").value, 10)
+    }
   }
 
   async update(files=null) {
@@ -152,7 +161,9 @@ export class AddonAdminPage {
     }
 
     for (let file of files) {
-      file.status = ADDON_STATUS.DISABLED;
+      if (file.status !== ADDON_STATUS.DELETED) {
+        file.status = ADDON_STATUS.DISABLED;
+      }
     }
 
     if (commit) {
