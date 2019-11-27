@@ -119,3 +119,27 @@ export function detectIdType(data) {
     return "slug";
   }
 }
+
+export class LogSequential {
+  static newLogger() {
+    let instance = new LogSequential();
+    return instance.logger;
+  }
+
+  constructor() {
+    this.requests = {};
+    this.logger = this.logger.bind(this);
+  }
+
+  logger(type, data, request) {
+    if (type == "request") {
+      this.requests[data.debugId] = { [type]: data };
+    } else if (type == "response") {
+      this.requests[data.debugId][type] = data;
+      console.error(this.requests[data.debugId]);
+      delete this.requests[data.debugId];
+    } else {
+      this.requests[data.debugId][type] = data;
+    }
+  }
+}

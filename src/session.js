@@ -4,17 +4,17 @@
  * Portions Copyright (C) Philipp Kewisch, 2019 */
 
 import { AMO_BASE, AMO_INTERNAL_BASE } from "./constants";
+import { LogSequential } from "./utils";
 import { JSDOM } from "jsdom";
 
 import requestDebug from "request-debug";
 import request from "request-promise-native";
 import fs from "fs";
 
-
 export class AMOSession {
-  constructor({ debug=false, dryrun=false }) {
+  constructor({ debug=false, sequential=false, dryrun=false }) {
     if (debug) {
-      requestDebug(request);
+      requestDebug(request, sequential ? LogSequential.newLogger() : null);
     }
 
     this.jar = request.jar();
