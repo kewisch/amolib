@@ -103,7 +103,7 @@ export class AddonAdminPage {
           channel: row.querySelector("td:nth-of-type(3)").textContent
         },
         platforms: row.querySelector("td:nth-of-type(5)").textContent,
-        status: getFileStatus(row),
+        status: this.getFileStatus(row),
         hash: row.querySelector("td:nth-of-type(7) a").getAttribute("title")
       });
     }
