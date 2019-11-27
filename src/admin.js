@@ -43,9 +43,10 @@ export class UserAdminPage {
 
 
 export class AddonAdminPage {
-  constructor(session, addonId) {
+  constructor(session, addonId, autocommit=true) {
     this.session = session;
     this.addonId = addonId;
+    this.autocommit = true;
     this._addonSlug = null;
     this.files = [];
   }
@@ -93,50 +94,60 @@ export class AddonAdminPage {
 
     let files = [];
     for (let row of document.querySelectorAll("table > tbody > tr")) {
+      let isContinuation = row.firstElementChild.getAttribute("colspan") == "3";
+      let continuationRow = isContinuation ? row.previousElementSibling : row;
+      let rowBase = isContinuation ? -2 : 0;
+
       files.push({
-        id: parseInt(row.querySelector("td:nth-of-type(4) a").textContent, 10),
-        name: row.querySelector("td:nth-of-type(4) a").getAttribute("title"),
-        date: row.querySelector("td:nth-of-type(1)").textContent,
+        id: parseInt(row.querySelector(`td:nth-of-type(${rowBase + 4}) a`).textContent, 10),
+        name: row.querySelector(`td:nth-of-type(${rowBase + 4}) a`).getAttribute("title"),
+        date: continuationRow.querySelector("td:nth-of-type(1)").textContent,
         version: {
-          id: parseInt(row.querySelector("td:nth-of-type(2) a").getAttribute("title"), 10),
-          name: row.querySelector("td:nth-of-type(2) a").textContent,
-          channel: row.querySelector("td:nth-of-type(3)").textContent
+          id: parseInt(continuationRow.querySelector("td:nth-of-type(2) a").getAttribute("title"), 10),
+          name: continuationRow.querySelector("td:nth-of-type(2) a").textContent,
+          channel: continuationRow.querySelector("td:nth-of-type(3)").textContent
         },
-        platforms: row.querySelector("td:nth-of-type(5)").textContent,
-        status: this.getFileStatus(row),
-        hash: row.querySelector("td:nth-of-type(7) a").getAttribute("title")
+        platforms: row.querySelector(`td:nth-of-type(${rowBase + 5})`).textContent,
+        status: this.getFileStatus(row, rowBase),
+        hash: row.querySelector(`td:nth-of-type(${rowBase + 7}) a`).getAttribute("title")
       });
     }
 
     return files;
   }
 
-  getFileStatus(row) {
-    let column = row.querySelector("td:nth-of-type(6)");
+  getFileStatus(row, rowBase) {
+    let column = row.querySelector(`td:nth-of-type(${rowBase + 6})`);
     if (column.innerText === "Deleted") {
       return ADDON_STATUS.DELETED;
     } else {
-      return parseInt(column.querySelector("select").value, 10)
+      return parseInt(column.querySelector("select").value, 10);
     }
   }
 
   async update(files=null) {
-    if (!files) {
+    if (files === null) {
       files = this.files;
     }
 
     let form = {
-      "status": this.status,
-      "form-TOTAL_FORMS": files.length,
-      "form-INITIAL_FORMS": files.length,
-      "form-MIN_NUM_FORMS": 0,
-      "form-MAX_NUM_FORMS": Math.max(1000, files.length),
-      "csrfmiddlewaretoken": this.token
+      status: this.status,
+      csrfmiddlewaretoken: this.token
     };
 
-    for (let i = 0, len = files.length; i < len; i++) {
-      form[`form-${i}-status`] = files[i].status;
-      form[`form-${i}-id`] = files[i].id;
+    if (files.length) {
+      form = {
+        ...form,
+        "form-TOTAL_FORMS": files.length,
+        "form-INITIAL_FORMS": files.length,
+        "form-MIN_NUM_FORMS": 0,
+        "form-MAX_NUM_FORMS": Math.max(1000, files.length),
+      };
+
+      for (let i = 0, len = files.length; i < len; i++) {
+        form[`form-${i}-status`] = files[i].status;
+        form[`form-${i}-id`] = files[i].id;
+      }
     }
 
     let uri = `${AMO_ADMIN_BASE}/addon/manage/${this.addonSlug}/`;
@@ -147,13 +158,13 @@ export class AddonAdminPage {
       headers: { Referer: uri }
     });
 
-    if (response.statusCode != 302 &&
+    if (response.statusCode != 302 ||
         !response.headers.location.includes(`/addon/manage/${this.addonSlug}/`)) {
       throw new Error("Updating failed: " + response.statusCode);
     }
   }
 
-  async disableFiles(files=null, commit=true) {
+  async disableFiles(files=null) {
     await this.ensureLoaded();
 
     if (!files) {
@@ -166,12 +177,12 @@ export class AddonAdminPage {
       }
     }
 
-    if (commit) {
+    if (this.autocommit) {
       await this.update();
     }
   }
 
-  async enableFiles(files=null, commit=true) {
+  async enableFiles(files=null) {
     await this.ensureLoaded();
 
     if (!files) {
@@ -182,21 +193,21 @@ export class AddonAdminPage {
       file.status = ADDON_STATUS.APPROVED;
     }
 
-    if (commit) {
+    if (this.autocommit) {
       await this.update();
     }
   }
 
-  async enableVersions(versions, commit=true) {
+  async enableVersions(versions) {
     let versionSet = new Set(versions);
     let toEnable = this.files.filter(file => versionSet.has(file.version.name));
-    return this.enableFiles(toEnable, commit);
+    return this.enableFiles(toEnable);
   }
 
-  async disableVersions(versions, commit=true) {
+  async disableVersions(versions) {
     let versionSet = new Set(versions);
     let toEnable = this.files.filter(file => versionSet.has(file.version.name));
-    return this.disableFiles(toEnable, commit);
+    return this.disableFiles(toEnable);
   }
 }
 
