@@ -120,7 +120,8 @@ export class AddonAdminPage {
 
   getFileStatus(row, rowBase) {
     let column = row.querySelector(`td:nth-of-type(${rowBase + 6})`);
-    if (column.innerText === "Deleted") {
+    let text = [...column.childNodes].filter(node => node.nodeType == 3).map(node => node.nodeValue.trim()).join("");
+    if (text == "Deleted") {
       return ADDON_STATUS.DELETED;
     } else {
       return parseInt(column.querySelector("select").value, 10);
@@ -131,6 +132,8 @@ export class AddonAdminPage {
     if (files === null) {
       files = this.files;
     }
+
+    files = files.filter(file => file.status != ADDON_STATUS.DELETED);
 
     let form = {
       "status": this.status,
@@ -145,6 +148,7 @@ export class AddonAdminPage {
       form[`form-${i}-status`] = files[i].status;
       form[`form-${i}-id`] = files[i].id;
     }
+    console.log("FILES", files.length, form);
 
     let uri = `${AMO_ADMIN_BASE}/addon/manage/${this.addonSlug}/`;
     let response = await this.session.request({
