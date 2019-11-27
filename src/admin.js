@@ -49,6 +49,7 @@ export class AddonAdminPage {
     this.autocommit = true;
     this._addonSlug = null;
     this.files = [];
+    this.loaded = false;
   }
 
   get addonSlug() {
@@ -56,12 +57,13 @@ export class AddonAdminPage {
   }
 
   async ensureLoaded() {
-    if (!this.files.length) {
+    if (!this.loaded) {
       await this.load();
     }
   }
 
   async load() {
+    this.loaded = true;
     this.files = await this.loadPage(1);
     let promises = [];
     for (let i = 2; i <= this.pageCount; i++) {
@@ -131,23 +133,17 @@ export class AddonAdminPage {
     }
 
     let form = {
-      status: this.status,
-      csrfmiddlewaretoken: this.token
+      "status": this.status,
+      "csrfmiddlewaretoken": this.token,
+      "form-TOTAL_FORMS": files.length,
+      "form-INITIAL_FORMS": files.length,
+      "form-MIN_NUM_FORMS": 0,
+      "form-MAX_NUM_FORMS": Math.max(1000, files.length),
     };
 
-    if (files.length) {
-      form = {
-        ...form,
-        "form-TOTAL_FORMS": files.length,
-        "form-INITIAL_FORMS": files.length,
-        "form-MIN_NUM_FORMS": 0,
-        "form-MAX_NUM_FORMS": Math.max(1000, files.length),
-      };
-
-      for (let i = 0, len = files.length; i < len; i++) {
-        form[`form-${i}-status`] = files[i].status;
-        form[`form-${i}-id`] = files[i].id;
-      }
+    for (let i = 0, len = files.length; i < len; i++) {
+      form[`form-${i}-status`] = files[i].status;
+      form[`form-${i}-id`] = files[i].id;
     }
 
     let uri = `${AMO_ADMIN_BASE}/addon/manage/${this.addonSlug}/`;
