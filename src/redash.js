@@ -106,4 +106,26 @@ export class AMORedashClient extends STMORedashClient {
 
     return result.query_result.data.rows.map(row => row.guid);
   }
+
+  async querySeprateLegacyAndWX(guids) {
+    let res = await this.buildQuery()
+      .select("a.guid")
+      .select("SUM(f.is_webextension) > 0 AS has_wx")
+      .from("addons")
+      .join("versions", "v.addon_id = a.id")
+      .join("files", "f.version_id = v.id")
+      .wherein("guid", guids)
+      .groupby("a.id")
+      .run();
+
+    let invalidset = new Set(guids);
+    let data = res.query_result.data.rows.reduce((acc, { guid, has_wx }) => {
+      acc[has_wx].push(guid);
+      invalidset.delete(guid);
+      return acc;
+    }, [[], []]);
+
+    data.push([...invalidset]);
+    return data;
+  }
 }

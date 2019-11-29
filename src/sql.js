@@ -70,6 +70,10 @@ export default class AMOSqlBuilder {
     return this;
   }
 
+  wherein(field, values) {
+    return this.where(field + " IN (" + values.map(JSON.stringify).join(",") + ")");
+  }
+
   toString() {
     let stmt = ["SELECT " + this._fields.join(", ")];
     stmt.push(`FROM ${this._from} ${TABLE_SHORT[this._from] || ""}`);
