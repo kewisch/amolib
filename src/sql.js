@@ -17,6 +17,7 @@ export default class AMOSqlBuilder {
     this._fields = [];
     this._join = {};
     this._where = [];
+    this._having = [];
     this._groupby = null;
     this._orderby = null;
     this.client = client;
@@ -74,6 +75,12 @@ export default class AMOSqlBuilder {
     return this.where(field + " IN (" + values.map(JSON.stringify).join(",") + ")");
   }
 
+  having(condition) {
+    this._having.push(condition);
+    return this;
+  }
+
+
   toString() {
     let stmt = ["SELECT " + this._fields.join(", ")];
     stmt.push(`FROM ${this._from} ${TABLE_SHORT[this._from] || ""}`);
@@ -88,6 +95,10 @@ export default class AMOSqlBuilder {
 
     if (this._groupby) {
       stmt.push("GROUP BY " + this._groupby);
+    }
+
+    if (this._having.length) {
+      stmt.push("HAVING " + this._having.join("\n AND "));
     }
 
     if (this._orderby) {
