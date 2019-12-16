@@ -60,6 +60,7 @@ export const ADDON_CHANNEL_STRINGS = {
 
 export const REDASH_URL = "https://sql.telemetry.mozilla.org/";
 export const REDASH_AMO_DB = 25;
+export const REDASH_TELEMETRY_DB = 63;
 export const REDASH_POLLING_TIMEOUT_MS = 60 * 1000;
 
 export const BUGZILLA_URL = "https://bugzilla.mozilla.org";

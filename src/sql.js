@@ -16,6 +16,7 @@ export default class AMOSqlBuilder {
     this._from = null;
     this._fields = [];
     this._join = {};
+    this._customjoin = [];
     this._where = [];
     this._having = [];
     this._groupby = null;
@@ -34,6 +35,11 @@ export default class AMOSqlBuilder {
 
   select(...fields) {
     this._fields = this._fields.concat(fields);
+    return this;
+  }
+
+  customjoin(str) {
+    this._customjoin.push(str);
     return this;
   }
 
@@ -88,6 +94,8 @@ export default class AMOSqlBuilder {
     for (let [tbl, relation] of Object.entries(this._join)) {
       stmt.push(`LEFT JOIN ${tbl} ${TABLE_SHORT[tbl] || ""} ON (${relation})`);
     }
+
+    stmt.push(this._customjoin.join("\n"));
 
     if (this._where.length) {
       stmt.push("WHERE " + this._where.join("\n  AND "));

@@ -5,7 +5,7 @@
 
 import RedashClient from "redash-client";
 
-import { REDASH_URL, REDASH_AMO_DB, REDASH_POLLING_TIMEOUT_MS, ADDON_TYPE_STRINGS } from "./constants";
+import { REDASH_URL, REDASH_AMO_DB, REDASH_TELEMETRY_DB, REDASH_POLLING_TIMEOUT_MS, ADDON_TYPE_STRINGS } from "./constants";
 import * as packageJSON from "../package.json";
 import AMOSqlBuilder from "./sql";
 
@@ -33,6 +33,34 @@ export class STMORedashClient extends RedashClient {
 
   buildQuery() {
     return new AMOSqlBuilder(this);
+  }
+}
+
+export class TelemetryRedashClient extends STMORedashClient {
+  constructor({ apiToken, debug }) {
+    super({
+      apiToken: apiToken,
+      debug: debug,
+      dataSourceId: REDASH_TELEMETRY_DB
+    });
+  }
+
+  async queryUsage(guids) {
+    let res = await this.buildQuery()
+      .select("a.addon_id")
+      .select("COUNT(client_id) AS usage")
+      .from("telemetry.clients_last_seen m")
+      .customjoin("CROSS JOIN UNNEST(active_addons) a")
+      .where("m.submission_date = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)")
+      .where("days_since_seen < 15")
+      .wherein("a.addon_id", guids)
+      .groupby("a.addon_id")
+      .run();
+
+    return res.query_result.data.rows.reduce((acc, { addon_id, usage }) => {
+      acc[addon_id] = parseInt(usage, 10);
+      return acc;
+    }, {});
   }
 }
 
