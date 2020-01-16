@@ -138,7 +138,7 @@ export class AMORedashClient extends STMORedashClient {
   async querySeprateLegacyAndWX(guids) {
     let res = await this.buildQuery()
       .select("a.guid")
-      .select("SUM(f.is_webextension) < 1 AS has_no_wx")
+      .select("IFNULL(SUM(f.is_webextension) < 1, 1) AS has_no_wx")
       .from("addons")
       .join("versions", "v.addon_id = a.id")
       .join("files", "f.version_id = v.id")
