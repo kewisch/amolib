@@ -90,30 +90,47 @@ export function getConfig(...configpath) {
 }
 
 /**
+ * Split ids between ids, guids, and others.
+ *
+ * @param {string[]} data   Array of ids
+ * @return {Object}         An object with properties ids, guids, other
+ */
+export function partitionIds(data) {
+  let RE_GUID = /^(\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}|[a-z0-9-._]*@[a-z0-9-._]+)$/i;
+  let RE_IDS = /^[0-9]+$/;
+  let ids = [];
+  let guids = [];
+  let other = [];
+
+  for (let line of data) {
+    if (line.match(RE_IDS)) {
+      ids.push(line);
+    } else if (line.match(RE_GUID)) {
+      guids.push(line);
+    } else {
+      other.push(line);
+    }
+  }
+
+  return { ids, guids, other };
+}
+
+
+/**
  * Find out if the ids passed are internal ids, guids, or slugs, or a mixture thereof
  *
  * @param {string[]} data   Array of ids
  * @return {string}         The type, "id", "guid", "slug" or "mixed".
  */
 export function detectIdType(data) {
-  let RE_GUID = /^(\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}|[a-z0-9-._]*@[a-z0-9-._]+)$/i;
-  let RE_IDS = /^[0-9]+$/;
-  let countGuids = 0;
-  let countIds = 0;
-  for (let line of data) {
-    if (line.match(RE_IDS)) {
-      countIds++;
-    } else if (line.match(RE_GUID)) {
-      countGuids++;
-    }
-  }
+  let { ids, guids } = partitionIds(data);
 
   let total = data.length;
-  if (countIds == total) {
+  if (ids.length == total) {
     return "id";
-  } else if (countGuids == total) {
+  } else if (guids.length == total) {
     return "guid";
-  } else if (countGuids + countIds > 0) {
+  } else if (guids.length + ids.length > 0) {
     return "mixed";
   } else {
     return "slug";
