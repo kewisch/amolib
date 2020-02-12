@@ -74,6 +74,10 @@ export class AMORedashClient extends STMORedashClient {
   }
 
   async queryMapIds(from, to, ids) {
+    if (!ids.length) {
+      return {};
+    }
+
     if (typeof ids[0] == "string") {
       ids = ids.map(id => JSON.stringify(id));
     }
@@ -96,6 +100,10 @@ export class AMORedashClient extends STMORedashClient {
   }
 
   async queryUsersForIds(type="id", ids) {
+    if (!ids.length) {
+      return [];
+    }
+
     if (typeof ids[0] == "string") {
       ids = ids.map(id => JSON.stringify(id));
     }
@@ -113,6 +121,9 @@ export class AMORedashClient extends STMORedashClient {
   }
 
   async queryAddonsInvolvedAccounts(guids, addontypes=["extension", "lpapp"]) {
+    if (!guids.length) {
+      return [];
+    }
     let types = addontypes.map(type => ADDON_TYPE_STRINGS[type] || type);
 
     let result = await this.sql(`
@@ -136,6 +147,10 @@ export class AMORedashClient extends STMORedashClient {
   }
 
   async querySeprateLegacyAndWX(guids) {
+    if (!guids.length) {
+      return [[], [], []];
+    }
+
     let res = await this.buildQuery()
       .select("a.guid")
       .select("IFNULL(SUM(f.is_webextension) < 1, 1) AS has_no_wx")
