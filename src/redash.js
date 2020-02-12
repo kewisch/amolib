@@ -95,8 +95,29 @@ export class AMORedashClient extends STMORedashClient {
   }
 
   async queryAllIds(type="guid") {
-    let result = await this.sql(`SELECT ${type} FROM addons WHERE ${type} IS NOT NULL`);
-    return result.query_result.data.rows.map(row => row[type]);
+    let ranges = [
+      [null, "2019-04-27"],
+      ["2019-04-27", "2019-05-01"],
+      ["2019-05-01", "2019-06-01"],
+      ["2019-06-01", null]
+    ];
+
+    let results = [];
+    for (let [from, to] of ranges) {
+      let res = await this.sql(`
+        SELECT ${type} FROM addons
+        WHERE
+          ${type} IS NOT NULL
+          ${from ? `AND created >= "${from}"` : ""}
+          ${to ? `AND created < "${to}"` : ""}
+      `, 3 * REDASH_POLLING_TIMEOUT_MS);
+
+      results.push(res);
+    }
+
+    return results.reduce((acc, result) => {
+      return acc.concat(result.query_result.data.rows.map(row => row[type]));
+    }, []);
   }
 
   async queryUsersForIds(type="id", ids) {
