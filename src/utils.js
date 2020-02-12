@@ -123,17 +123,17 @@ export function partitionIds(data) {
  * @return {string}         The type, "id", "guid", "slug" or "mixed".
  */
 export function detectIdType(data) {
-  let { ids, guids } = partitionIds(data);
+  let { ids, guids, other } = partitionIds(data);
 
   let total = data.length;
   if (ids.length == total) {
     return "id";
   } else if (guids.length == total) {
     return "guid";
-  } else if (guids.length + ids.length > 0) {
-    return "mixed";
-  } else {
+  } else if (other.length == total) {
     return "slug";
+  } else {
+    return "mixed";
   }
 }
 
