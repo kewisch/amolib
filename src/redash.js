@@ -167,14 +167,15 @@ export class AMORedashClient extends STMORedashClient {
     return result.query_result.data.rows.map(row => row.guid);
   }
 
-  async querySeprateLegacyAndWX(guids) {
+  async querySeparateLegacyAndUnsigned(guids) {
     if (!guids.length) {
-      return [[], [], []];
+      return [[], [], [], []];
     }
 
     let res = await this.buildQuery()
       .select("a.guid")
       .select("IFNULL(SUM(f.is_webextension) < 1, 1) AS has_no_wx")
+      .select("IFNULL(SUM(f.is_signed) < 1, 1) AS is_not_signed")
       .from("addons")
       .join("versions", "v.addon_id = a.id")
       .join("files", "f.version_id = v.id")
@@ -183,11 +184,13 @@ export class AMORedashClient extends STMORedashClient {
       .run();
 
     let invalidset = new Set(guids);
-    let data = res.query_result.data.rows.reduce((acc, { guid, has_no_wx }) => {
-      acc[has_no_wx].push(guid);
+    let data = res.query_result.data.rows.reduce((acc, { guid, has_no_wx, is_not_signed }) => {
+      if (has_no_wx) acc[1].push(guid);
+      if (is_not_signed) acc[2].push(guid);
+      else acc[0].push(guid);
       invalidset.delete(guid);
       return acc;
-    }, [[], []]);
+    }, [[], [], []]);
 
     data.push([...invalidset]);
     return data;
