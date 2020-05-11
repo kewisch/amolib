@@ -161,7 +161,7 @@ export class AMORedashClient extends STMORedashClient {
         )
         AND a.guid NOT LIKE 'guid-reused-by-pk-%'
         AND a.addontype_id IN (${types.join(",")})
-        GROUP BY a.id
+        GROUP BY a.guid
     `);
 
     return result.query_result.data.rows.map(row => row.guid);
@@ -180,7 +180,7 @@ export class AMORedashClient extends STMORedashClient {
       .join("versions", "v.addon_id = a.id")
       .join("files", "f.version_id = v.id")
       .wherein("guid", guids)
-      .groupby("a.id")
+      .groupby("a.guid")
       .run();
 
     let invalidset = new Set(guids);
