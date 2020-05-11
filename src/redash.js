@@ -187,7 +187,7 @@ export class AMORedashClient extends STMORedashClient {
     let data = res.query_result.data.rows.reduce((acc, { guid, has_no_wx, is_not_signed }) => {
       if (has_no_wx) acc[1].push(guid);
       if (is_not_signed) acc[2].push(guid);
-      else acc[0].push(guid);
+      if (!has_no_wx && !is_not_signed) acc[0].push(guid);
       invalidset.delete(guid);
       return acc;
     }, [[], [], []]);
