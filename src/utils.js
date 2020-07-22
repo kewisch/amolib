@@ -31,7 +31,7 @@ export function formToObject(formNode) {
 
 export function requiresVPN() {
   let hasVPN = Object.entries(os.networkInterfaces()).find(([iface, [data]]) => {
-    return data.address.startsWith("10.") && iface.startsWith("utun");
+    return data.address.startsWith("10.") && (iface.startsWith("utun") || iface.startsWith("tun"));
   });
 
   if (!hasVPN) {
