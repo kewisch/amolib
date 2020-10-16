@@ -47,14 +47,12 @@ export class TelemetryRedashClient extends STMORedashClient {
 
   async queryUsage(guids) {
     let res = await this.buildQuery()
-      .select("a.addon_id")
-      .select("COUNT(client_id) AS usage")
-      .from("telemetry.clients_last_seen m")
-      .customjoin("CROSS JOIN UNNEST(active_addons) a")
-      .where("m.submission_date = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)")
-      .where("days_since_seen < 15")
-      .wherein("a.addon_id", guids)
-      .groupby("a.addon_id")
+      .select("addon_id")
+      .select("AVG(dau) AS usage")
+      .from("amo_prod.amo_stats_dau")
+      .where("submission_date > DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)")
+      .wherein("addon_id", guids)
+      .groupby("addon_id")
       .run();
 
     return res.query_result.data.rows.reduce((acc, { addon_id, usage }) => {
@@ -185,9 +183,11 @@ export class AMORedashClient extends STMORedashClient {
 
     let invalidset = new Set(guids);
     let data = res.query_result.data.rows.reduce((acc, { guid, has_no_wx, is_not_signed }) => {
+      /* eslint-disable curly */
       if (has_no_wx) acc[1].push(guid);
       if (is_not_signed) acc[2].push(guid);
       if (!has_no_wx && !is_not_signed) acc[0].push(guid);
+      /* eslint-enable curly */
       invalidset.delete(guid);
       return acc;
     }, [[], [], []]);
