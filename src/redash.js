@@ -45,12 +45,15 @@ export class TelemetryRedashClient extends STMORedashClient {
     });
   }
 
-  async queryUsage(guids) {
+  async queryUsage(guids, refdate, days=7) {
+    let escapedRefdate = refdate ? `"${refdate.replace(/[^0-9-]+/g, "")}"` : "CURRENT_DATE()";
+
     let res = await this.buildQuery()
       .select("addon_id")
       .select("AVG(dau) AS usage")
       .from("amo_prod.amo_stats_dau")
-      .where("submission_date > DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)")
+      .where(`submission_date > DATE_SUB(${escapedRefdate}, INTERVAL ${parseInt(days, 10)} DAY)`)
+      .where(`submission_date < ${escapedRefdate}`)
       .wherein("addon_id", guids)
       .groupby("addon_id")
       .run();
